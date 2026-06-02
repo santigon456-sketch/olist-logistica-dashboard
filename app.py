@@ -181,6 +181,54 @@ elif seccion == "Segmentos logísticos":
 
     El objetivo es analizar si la complejidad territorial se asocia con un mayor riesgo de fallas extremas.
     """)
+    st.markdown("---")
+
+    st.subheader("Mapa de macro-regiones de Brasil")
+
+    st.markdown("""
+    Este mapa divide Brasil en sus cinco macro-regiones: **Norte, Nordeste, Centro-Oeste, Sudeste y Sur**.
+
+    La división regional ayuda a interpretar los segmentos logísticos del proyecto.  
+    Un pedido clasificado como **Misma Región** no necesariamente implica cercanía operativa baja:
+    puede involucrar rutas de alto volumen o alta complejidad, como **SP → RJ** dentro del Sudeste.
+    """)
+
+    estados_regiones = estados.copy()
+
+    fig_regiones = px.choropleth_mapbox(
+        estados_regiones,
+        geojson=geojson_brasil,
+        locations="codarea",
+        color="region_brasil",
+        featureidkey="id",
+        hover_name="customer_state",
+        hover_data={
+            "region_brasil": True,
+            "pedidos": True,
+            "fallas_extremas": True,
+            "tasa_fallas_extremas": ":.2f",
+            "codarea": False
+        },
+        mapbox_style="carto-positron",
+        zoom=3.1,
+        center={"lat": -14.2, "lon": -51.9},
+        opacity=0.75,
+        title="División de Brasil por macro-regiones"
+    )
+
+    fig_regiones.update_layout(
+        height=650,
+        margin={"r": 0, "t": 40, "l": 0, "b": 0},
+        legend_title_text="Región"
+    )
+
+    st.plotly_chart(fig_regiones, use_container_width=True)
+
+    st.info("""
+    La región **Sudeste** concentra estados logísticamente relevantes como **SP** y **RJ**.
+    Por eso, aunque la ruta **SP → RJ** pertenezca al segmento **Misma Región**,
+    puede comportarse como una ruta crítica por volumen, densidad operativa o complejidad de distribución.
+    """)
 
     st.markdown("---")
 
@@ -343,54 +391,6 @@ elif seccion == "Segmentos logísticos":
         En ese caso, el problema del segmento Misma Región debería interpretarse como más distribuido
         entre varias rutas del segmento.
         """)
-        st.markdown("---")
-
-    st.subheader("Mapa de macro-regiones de Brasil")
-
-    st.markdown("""
-    Este mapa divide Brasil en sus cinco macro-regiones: **Norte, Nordeste, Centro-Oeste, Sudeste y Sur**.
-
-    La división regional ayuda a interpretar los segmentos logísticos del proyecto.  
-    Un pedido clasificado como **Misma Región** no necesariamente implica cercanía operativa baja:
-    puede involucrar rutas de alto volumen o alta complejidad, como **SP → RJ** dentro del Sudeste.
-    """)
-
-    estados_regiones = estados.copy()
-
-    fig_regiones = px.choropleth_mapbox(
-        estados_regiones,
-        geojson=geojson_brasil,
-        locations="codarea",
-        color="region_brasil",
-        featureidkey="id",
-        hover_name="customer_state",
-        hover_data={
-            "region_brasil": True,
-            "pedidos": True,
-            "fallas_extremas": True,
-            "tasa_fallas_extremas": ":.2f",
-            "codarea": False
-        },
-        mapbox_style="carto-positron",
-        zoom=3.1,
-        center={"lat": -14.2, "lon": -51.9},
-        opacity=0.75,
-        title="División de Brasil por macro-regiones"
-    )
-
-    fig_regiones.update_layout(
-        height=650,
-        margin={"r": 0, "t": 40, "l": 0, "b": 0},
-        legend_title_text="Región"
-    )
-
-    st.plotly_chart(fig_regiones, use_container_width=True)
-
-    st.info("""
-    La región **Sudeste** concentra estados logísticamente relevantes como **SP** y **RJ**.
-    Por eso, aunque la ruta **SP → RJ** pertenezca al segmento **Misma Región**,
-    puede comportarse como una ruta crítica por volumen, densidad operativa o complejidad de distribución.
-    """)
 
 # ============================================================
 # SECCIÓN 3 — RIESGO POR ESTADO

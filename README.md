@@ -4,7 +4,7 @@ Este repositorio contiene un dashboard interactivo desarrollado en Streamlit par
 
 ## Link al dashboard
 
-[Ver dashboard en Streamlit](PEGAR_ACÁ_EL_LINK_DE_TU_APP)
+[Ver dashboard en Streamlit](https://olist-logistica-dashboard-ijmqqq8d2fueampgekfgfj.streamlit.app/)
 
 ## Objetivo del proyecto
 

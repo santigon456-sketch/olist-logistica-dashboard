@@ -55,10 +55,11 @@ codigos_ibge_uf = {
 estados["codarea"] = estados["customer_state"].map(codigos_ibge_uf)
 
 # Aseguramos que el código del GeoJSON sea texto
+# y creamos un ID explícito para que Plotly pueda matchear cada estado
 for feature in geojson_brasil["features"]:
-    if "codarea" in feature["properties"]:
-        feature["properties"]["codarea"] = str(feature["properties"]["codarea"])
-
+    codarea = str(feature["properties"]["codarea"])
+    feature["properties"]["codarea"] = codarea
+    feature["id"] = codarea
 # ============================================================
 # MENÚ LATERAL
 # ============================================================
@@ -351,33 +352,41 @@ elif seccion == "Mapa de riesgo":
         "review_promedio": "Review promedio"
     }
 
-    fig_mapa = px.choropleth(
-        estados,
-        geojson=geojson_brasil,
-        locations="codarea",
-        featureidkey="properties.codarea",
-        color=metrica,
-        hover_name="customer_state",
-        hover_data={
-            "pedidos": True,
-            "fallas_extremas": True,
-            "tasa_fallas_extremas": ":.2f",
-            "tiempo_promedio": ":.2f",
-            "review_promedio": ":.2f",
-            "codarea": False
-        },
-        color_continuous_scale="Reds",
-        title=nombres_metricas[metrica]
-    )
+fig_mapa = px.choropleth(
+    estados,
+    geojson=geojson_brasil,
+    locations="codarea",
+    featureidkey="id",
+    color=metrica,
+    hover_name="customer_state",
+    hover_data={
+        "pedidos": True,
+        "fallas_extremas": True,
+        "tasa_fallas_extremas": ":.2f",
+        "tiempo_promedio": ":.2f",
+        "review_promedio": ":.2f",
+        "codarea": False
+    },
+    color_continuous_scale="Reds",
+    title=nombres_metricas[metrica]
+)
 
-    fig_mapa.update_geos(
-        fitbounds="locations",
-        visible=False
-    )
+fig_mapa.update_traces(
+    marker_line_width=0.7,
+    marker_line_color="white"
+)
 
-    fig_mapa.update_layout(
-        margin={"r": 0, "t": 50, "l": 0, "b": 0}
-    )
+fig_mapa.update_geos(
+    visible=False,
+    projection_type="mercator",
+    center={"lat": -14.2, "lon": -51.9},
+    projection_scale=3.2
+)
+
+fig_mapa.update_layout(
+    height=650,
+    margin={"r": 0, "t": 50, "l": 0, "b": 0}
+)
 
     st.plotly_chart(fig_mapa, use_container_width=True)
 

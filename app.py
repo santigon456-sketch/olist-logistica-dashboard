@@ -103,6 +103,16 @@ if seccion == "Resumen ejecutivo":
     evaluar el impacto de las fallas extremas en la satisfacción del cliente y presentar una primera aproximación
     predictiva mediante regresión lineal.
     """)
+        st.markdown("""
+    ### Ficha técnica del análisis
+
+    - **Dataset:** Brazilian E-Commerce Public Dataset by Olist.
+    - **Fuente:** Kaggle / Olist.
+    - **Período principal:** pedidos realizados entre septiembre de 2016 y octubre de 2018.
+    - **Alcance geográfico:** Brasil.
+    - **Unidad principal de análisis:** pedido.
+    - **Enfoque del proyecto:** desempeño logístico, tiempos de entrega, rutas críticas, fallas extremas y satisfacción del cliente.
+    """)
 
     st.markdown("---")
 

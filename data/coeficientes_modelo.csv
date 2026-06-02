@@ -1,0 +1,16 @@
+variable,coeficiente,coeficiente_abs,variable_limpia,direccion
+cat__region_cliente_Norte,4.320410802128173,4.320410802128173,Región cliente: Norte,Aumenta el tiempo estimado
+cat__region_cliente_Nordeste,4.102446712602786,4.102446712602786,Región cliente: Nordeste,Aumenta el tiempo estimado
+cat__segmento_logistico_3. Distinta Región,3.844563022316633,3.844563022316633,Segmento: 3. Distinta Región,Aumenta el tiempo estimado
+cat__segmento_logistico_2. Misma Región,3.2786047607449875,3.2786047607449875,Segmento: 2. Misma Región,Aumenta el tiempo estimado
+num__ruta_sp_rj,2.917451152589629,2.917451152589629,Ruta SP → RJ,Aumenta el tiempo estimado
+num__ruta_sp_pa,1.7466984163367552,1.7466984163367552,Ruta SP → PA,Aumenta el tiempo estimado
+num__categorias_distintas,-1.6242526940291129,1.6242526940291129,Categorías distintas,Disminuye el tiempo estimado
+cat__region_cliente_Sudeste,-1.4998130418531586,1.4998130418531586,Región cliente: Sudeste,Disminuye el tiempo estimado
+cat__categoria_modelo_cama_mesa_banho,1.0336822285064817,1.0336822285064817,Categoría: cama_mesa_banho,Aumenta el tiempo estimado
+cat__categoria_modelo_informatica_acessorios,0.9170633431006194,0.9170633431006194,Categoría: informatica_acessorios,Aumenta el tiempo estimado
+num__origen_sp,0.8838907622190131,0.8838907622190131,Origen SP,Aumenta el tiempo estimado
+cat__categoria_modelo_ferramentas_jardim,0.8420096296898449,0.8420096296898449,Categoría: ferramentas_jardim,Aumenta el tiempo estimado
+cat__categoria_modelo_eletronicos,0.7771646283344635,0.7771646283344635,Categoría: eletronicos,Aumenta el tiempo estimado
+cat__categoria_modelo_utilidades_domesticas,-0.6464124094320207,0.6464124094320207,Categoría: utilidades_domesticas,Disminuye el tiempo estimado
+num__cantidad_items,-0.6329827964257725,0.6329827964257725,Cantidad de ítems,Disminuye el tiempo estimado

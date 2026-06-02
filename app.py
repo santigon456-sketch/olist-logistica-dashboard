@@ -77,7 +77,8 @@ seccion = st.sidebar.radio(
         "Riesgo por estado",
         "Mapa de riesgo",
         "Fallas extremas y satisfacción",
-        "Modelo predictivo"
+        "Modelo predictivo",
+        "Conclusiones y recomendaciones"
     ]
 )
 
@@ -620,4 +621,127 @@ elif seccion == "Modelo predictivo":
     La regresión lineal múltiple mejora el resultado al incorporar variables logísticas adicionales.
 
     Por lo tanto, el modelo refuerza la idea central del proyecto: **la logística importa y no puede evaluarse únicamente con la fecha prometida de entrega**.
+    """)
+# ============================================================
+# SECCIÓN 7 — CONCLUSIONES Y RECOMENDACIONES
+# ============================================================
+
+elif seccion == "Conclusiones y recomendaciones":
+
+    st.title("✅ Conclusiones y recomendaciones")
+
+    st.markdown("""
+    Esta sección resume los principales aprendizajes del análisis logístico y propone líneas de acción
+    orientadas a mejorar el monitoreo operativo de la red de entregas.
+    """)
+
+    st.markdown("---")
+
+    st.header("Conclusiones principales")
+
+    st.markdown("""
+    ### 1. El cumplimiento oficial no cuenta toda la historia
+
+    La operación presenta una tasa de cumplimiento alta frente a la fecha prometida. Sin embargo,
+    el análisis del tiempo real de entrega y del colchón de seguridad muestra que la promesa comercial
+    puede estar incorporando márgenes amplios.
+
+    Por eso, evaluar solo la tasa de retraso oficial puede ocultar diferencias reales de desempeño logístico.
+    """)
+
+    st.markdown("""
+    ### 2. La complejidad geográfica aumenta el riesgo operativo
+
+    Los pedidos dentro del mismo estado presentan menor riesgo relativo, mientras que los pedidos de misma región
+    y distinta región concentran una mayor proporción de fallas extremas.
+
+    Esto indica que la distancia territorial y el cruce regional agregan fricción a la operación logística.
+    """)
+
+    st.markdown("""
+    ### 3. El riesgo logístico no se distribuye de forma homogénea
+
+    El análisis por estado y el mapa de riesgo muestran que algunos destinos presentan mayor proporción de entregas
+    extremadamente largas.
+
+    Esta mirada territorial permite diferenciar entre volumen de pedidos y riesgo relativo.
+    """)
+
+    st.markdown("""
+    ### 4. Las fallas extremas son pocas, pero impactan mucho en la satisfacción
+
+    Aunque las fallas extremas representan una proporción reducida del total de pedidos, presentan tiempos de entrega
+    muy superiores y una caída fuerte en las calificaciones de los clientes.
+
+    Esto muestra que los eventos extremos tienen un impacto desproporcionado sobre la experiencia del cliente.
+    """)
+
+    st.markdown("""
+    ### 5. El modelo predictivo confirma que las variables logísticas aportan información
+
+    La regresión lineal múltiple mejora al baseline y al modelo simple, lo que indica que variables como región,
+    segmento logístico, rutas específicas y características del pedido ayudan a estimar el tiempo real de entrega.
+
+    Sin embargo, el desempeño del modelo también muestra que la logística tiene variabilidad no explicada y factores
+    operativos que no están presentes en el dataset.
+    """)
+
+    st.markdown("---")
+
+    st.header("Recomendaciones operativas")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.success("""
+        **1. Separar indicadores de cumplimiento y eficiencia real**
+
+        Monitorear por separado la tasa de retraso oficial, el tiempo real de entrega y el colchón de seguridad.
+        Esto evita evaluar la operación únicamente desde la promesa comercial.
+        """)
+
+        st.success("""
+        **2. Definir alertas por segmento logístico**
+
+        Utilizar umbrales diferenciados para pedidos de mismo estado, misma región y distinta región,
+        ya que no presentan el mismo nivel de riesgo operativo.
+        """)
+
+        st.success("""
+        **3. Priorizar fallas extremas**
+
+        Aunque son pocos casos, las fallas extremas tienen alto impacto en satisfacción.
+        Conviene tratarlas como eventos críticos y no solo como outliers estadísticos.
+        """)
+
+    with col2:
+        st.success("""
+        **4. Monitorear estados y rutas críticas**
+
+        Usar mapas y rankings para identificar destinos o rutas con mayor concentración de problemas
+        y mayor riesgo relativo.
+        """)
+
+        st.success("""
+        **5. Revisar promesas de entrega por región**
+
+        El colchón de seguridad debería analizarse por segmento y región para detectar promesas demasiado amplias
+        o zonas con mayor incertidumbre logística.
+        """)
+
+        st.success("""
+        **6. Profundizar el modelo con variables operativas adicionales**
+
+        Para una predicción más robusta sería útil incorporar información como transportista, centros logísticos,
+        capacidad operativa, clima o eventos excepcionales.
+        """)
+
+    st.markdown("---")
+
+    st.info("""
+    En síntesis, el análisis muestra que la logística de Olist debe evaluarse desde tres dimensiones:
+    **cumplimiento comercial**, **eficiencia operativa real** y **experiencia del cliente**.
+
+    El dashboard permite transformar los hallazgos técnicos del Colab en una herramienta visual para comunicar
+    riesgos, prioridades y oportunidades de mejora.
     """)

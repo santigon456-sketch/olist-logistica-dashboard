@@ -1,0 +1,4 @@
+Modelo,R2,MAE_dias,MSE_dias,RMSE_dias,mejora_MAE_vs_baseline_pct,mejora_RMSE_vs_baseline_pct
+Baseline: promedio entrenamiento,-0.00,6.43,86.79,9.32,0.00,0.00
+Regresión lineal simple,0.16,5.58,72.85,8.54,13.16,8.37
+Regresión lineal múltiple,0.24,5.25,66.14,8.13,18.36,12.77

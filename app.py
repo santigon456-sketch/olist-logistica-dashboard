@@ -80,13 +80,6 @@ operativas relevantes que impactan en la experiencia del cliente.
 """)
 st.markdown("---")
 
-st.subheader("Navegación del dashboard")
-
-st.page_link(
-    "pages/1_Segmentos_Logisticos.py",
-    label="Ir a Segmentos logísticos",
-    icon="🧭"
-)
 
 st.markdown("""
 ### Lectura ejecutiva

@@ -41,6 +41,7 @@ segmentos = cargar_csv("metricas_segmento.csv")
 fallas = cargar_csv("fallas_vs_no_fallas.csv")
 estados = cargar_csv("metricas_estado.csv")
 metricas_modelo = cargar_csv("metricas_modelo.csv")
+rutas = cargar_csv("metricas_rutas.csv")
 geojson_brasil = cargar_geojson("brasil_estados.geojson")
 
 # ============================================================
@@ -76,6 +77,7 @@ seccion = st.sidebar.radio(
         "Segmentos logísticos",
         "Riesgo por estado",
         "Mapa de riesgo",
+        "Rutas críticas",
         "Fallas extremas y satisfacción",
         "Modelo predictivo",
         "Conclusiones y recomendaciones"
@@ -744,4 +746,279 @@ elif seccion == "Conclusiones y recomendaciones":
 
     El dashboard permite transformar los hallazgos técnicos del Colab en una herramienta visual para comunicar
     riesgos, prioridades y oportunidades de mejora.
+    """)
+# ============================================================
+# SECCIÓN 8 — RUTAS CRÍTICAS
+# ============================================================
+
+elif seccion == "Rutas críticas":
+
+    st.title("🛣️ Rutas críticas")
+
+    st.markdown("""
+    Esta sección analiza las rutas entre estado de vendedor y estado de cliente.
+
+    Una ruta se representa como:
+
+    **estado de origen → estado de destino**
+
+    Por ejemplo: **SP → RJ** o **SP → PA**.
+
+    El objetivo es diferenciar entre rutas que acumulan muchas fallas por volumen operativo
+    y rutas que presentan mayor riesgo relativo por su tasa de fallas extremas.
+    """)
+
+    st.markdown("---")
+
+    # ------------------------------------------------------------
+    # PREPARACIÓN DE DATOS
+    # ------------------------------------------------------------
+
+    rutas_dashboard = rutas.copy()
+
+    # Definimos rutas críticas como rutas con tasa de fallas superior a la tasa global
+    tasa_global_fallas = 1.37
+
+    rutas_dashboard["ruta_critica"] = (
+        rutas_dashboard["tasa_fallas_extremas"] > tasa_global_fallas
+    )
+
+    # Redondeo para tabla
+    tabla_rutas = rutas_dashboard.copy()
+
+    columnas_redondear = [
+        "tiempo_promedio",
+        "tiempo_mediano",
+        "p90_tiempo_entrega",
+        "tasa_retraso",
+        "tasa_fallas_extremas"
+    ]
+
+    for col in columnas_redondear:
+        if col in tabla_rutas.columns:
+            tabla_rutas[col] = tabla_rutas[col].round(2)
+
+    # ------------------------------------------------------------
+    # KPIS DE RUTAS
+    # ------------------------------------------------------------
+
+    st.subheader("Resumen de rutas analizadas")
+
+    total_rutas = rutas_dashboard["ruta"].nunique()
+    rutas_criticas = rutas_dashboard["ruta_critica"].sum()
+    tasa_rutas_criticas = rutas_criticas / total_rutas * 100
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Rutas analizadas", f"{total_rutas:,.0f}".replace(",", "."))
+    col2.metric("Rutas críticas", f"{rutas_criticas:,.0f}".replace(",", "."))
+    col3.metric("Rutas críticas (%)", f"{tasa_rutas_criticas:.2f}%")
+
+    st.info("""
+    Se consideran rutas críticas aquellas rutas con una tasa de fallas extremas superior a la tasa global del proyecto,
+    estimada en **1,37%**.
+
+    Este criterio permite identificar rutas cuyo riesgo relativo está por encima del promedio general de la operación.
+    """)
+
+    st.markdown("---")
+
+    # ------------------------------------------------------------
+    # TABLA
+    # ------------------------------------------------------------
+
+    st.subheader("Tabla de rutas")
+
+    st.dataframe(
+        tabla_rutas[
+            [
+                "ruta",
+                "seller_state",
+                "customer_state",
+                "segmento_logistico",
+                "pedidos",
+                "tiempo_promedio",
+                "p90_tiempo_entrega",
+                "fallas_extremas",
+                "tasa_fallas_extremas",
+                "ruta_critica"
+            ]
+        ],
+        use_container_width=True
+    )
+
+    st.markdown("---")
+
+    # ------------------------------------------------------------
+    # GRÁFICOS PRINCIPALES
+    # ------------------------------------------------------------
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.subheader("Top rutas por cantidad de fallas extremas")
+
+        top_fallas = (
+            rutas_dashboard
+            .sort_values("fallas_extremas", ascending=False)
+            .head(15)
+        )
+
+        fig_top_fallas = px.bar(
+            top_fallas,
+            x="fallas_extremas",
+            y="ruta",
+            orientation="h",
+            text="fallas_extremas",
+            title="Rutas con mayor cantidad de fallas extremas",
+            labels={
+                "fallas_extremas": "Fallas extremas",
+                "ruta": "Ruta"
+            },
+            hover_data=[
+                "pedidos",
+                "segmento_logistico",
+                "tasa_fallas_extremas",
+                "tiempo_promedio"
+            ]
+        )
+
+        fig_top_fallas.update_layout(
+            yaxis={"categoryorder": "total ascending"}
+        )
+
+        fig_top_fallas.update_traces(
+            textposition="outside"
+        )
+
+        st.plotly_chart(fig_top_fallas, use_container_width=True)
+
+    with col2:
+
+        st.subheader("Top rutas por tasa de fallas extremas")
+
+        top_tasa = (
+            rutas_dashboard
+            .sort_values("tasa_fallas_extremas", ascending=False)
+            .head(15)
+        )
+
+        fig_top_tasa = px.bar(
+            top_tasa,
+            x="tasa_fallas_extremas",
+            y="ruta",
+            orientation="h",
+            text="tasa_fallas_extremas",
+            title="Rutas con mayor riesgo relativo",
+            labels={
+                "tasa_fallas_extremas": "Tasa de fallas extremas (%)",
+                "ruta": "Ruta"
+            },
+            hover_data=[
+                "pedidos",
+                "segmento_logistico",
+                "fallas_extremas",
+                "tiempo_promedio"
+            ]
+        )
+
+        fig_top_tasa.update_layout(
+            yaxis={"categoryorder": "total ascending"}
+        )
+
+        fig_top_tasa.update_traces(
+            texttemplate="%{text:.2f}%",
+            textposition="outside"
+        )
+
+        st.plotly_chart(fig_top_tasa, use_container_width=True)
+
+    st.markdown("---")
+
+    # ------------------------------------------------------------
+    # RUTAS CRÍTICAS POR SEGMENTO
+    # ------------------------------------------------------------
+
+    st.subheader("Rutas críticas por segmento logístico")
+
+    rutas_por_segmento = (
+        rutas_dashboard
+        .groupby("segmento_logistico")
+        .agg(
+            rutas_totales=("ruta", "nunique"),
+            rutas_criticas=("ruta_critica", "sum")
+        )
+        .reset_index()
+    )
+
+    rutas_por_segmento["porcentaje_rutas_criticas"] = (
+        rutas_por_segmento["rutas_criticas"] /
+        rutas_por_segmento["rutas_totales"] * 100
+    )
+
+    fig_segmento = px.bar(
+        rutas_por_segmento,
+        x="segmento_logistico",
+        y="rutas_criticas",
+        text="rutas_criticas",
+        title="Cantidad de rutas críticas por segmento logístico",
+        labels={
+            "segmento_logistico": "Segmento logístico",
+            "rutas_criticas": "Cantidad de rutas críticas"
+        },
+        hover_data=[
+            "rutas_totales",
+            "porcentaje_rutas_criticas"
+        ]
+    )
+
+    fig_segmento.update_traces(
+        textposition="outside"
+    )
+
+    st.plotly_chart(fig_segmento, use_container_width=True)
+
+    # ------------------------------------------------------------
+    # GRÁFICO DE BURBUJAS
+    # ------------------------------------------------------------
+
+    st.subheader("Volumen operativo vs riesgo relativo")
+
+    fig_burbujas = px.scatter(
+        rutas_dashboard,
+        x="pedidos",
+        y="tasa_fallas_extremas",
+        size="fallas_extremas",
+        color="segmento_logistico",
+        hover_name="ruta",
+        hover_data=[
+            "tiempo_promedio",
+            "p90_tiempo_entrega",
+            "fallas_extremas"
+        ],
+        title="Relación entre volumen de pedidos y tasa de fallas extremas",
+        labels={
+            "pedidos": "Cantidad de pedidos",
+            "tasa_fallas_extremas": "Tasa de fallas extremas (%)",
+            "segmento_logistico": "Segmento logístico"
+        }
+    )
+
+    fig_burbujas.add_hline(
+        y=tasa_global_fallas,
+        line_dash="dash",
+        annotation_text="Tasa global de fallas extremas: 1,37%",
+        annotation_position="top left"
+    )
+
+    st.plotly_chart(fig_burbujas, use_container_width=True)
+
+    st.info("""
+    La sección de rutas permite separar dos dimensiones distintas:
+
+    - **Volumen operativo:** rutas con muchos pedidos pueden acumular más fallas en términos absolutos.
+    - **Riesgo relativo:** rutas con mayor tasa de fallas extremas presentan mayor proporción de entregas anormalmente largas.
+
+    Las rutas más prioritarias para monitoreo son aquellas que combinan alto volumen con una tasa de fallas superior al promedio general.
     """)

@@ -45,6 +45,8 @@ rutas = cargar_csv("metricas_rutas.csv")
 top_rutas_mapa = cargar_csv("top_rutas_mapa.csv")
 pedidos = cargar_csv("base_dashboard_pedidos.csv")
 impacto_sp_rj = cargar_csv("impacto_sp_rj_misma_region.csv")
+paciencia_diaria = cargar_csv("paciencia_segmento_diaria.csv")
+umbrales_paciencia = cargar_csv("umbrales_paciencia_segmento.csv")
 geojson_brasil = cargar_geojson("brasil_estados.geojson")
 
 # ============================================================
@@ -690,7 +692,104 @@ elif seccion == "Fallas extremas y satisfacción":
     Mientras los pedidos no extremos tienen una review promedio alta, las fallas extremas muestran una caída fuerte
     en la satisfacción y concentran una proporción mucho mayor de reviews bajas.
     """)  
+    st.markdown("---")
 
+    st.subheader("Umbral de paciencia por segmento logístico")
+
+    st.markdown("""
+    Además de comparar pedidos extremos contra no extremos, es útil analizar cómo cambia la satisfacción
+    a medida que aumenta el tiempo real de entrega.
+
+    El **umbral de paciencia** se define como el primer día en que el promedio suavizado de review
+    cae por debajo de **4 estrellas**. Esta lectura permite observar si la tolerancia del cliente cambia
+    según el segmento logístico.
+    """)
+
+    paciencia_plot = paciencia_diaria.copy()
+    umbrales_plot = umbrales_paciencia.copy()
+
+    columnas_numericas_paciencia = [
+        "tiempo_entrega_real",
+        "pedidos",
+        "review_promedio",
+        "porcentaje_reviews_bajas",
+        "review_promedio_suavizado",
+        "reviews_bajas_suavizado"
+    ]
+
+    for columna in columnas_numericas_paciencia:
+        if columna in paciencia_plot.columns:
+            paciencia_plot[columna] = pd.to_numeric(
+                paciencia_plot[columna],
+                errors="coerce"
+            )
+
+    if "umbral_paciencia_dias" in umbrales_plot.columns:
+        umbrales_plot["umbral_paciencia_dias"] = pd.to_numeric(
+            umbrales_plot["umbral_paciencia_dias"],
+            errors="coerce"
+        )
+
+    fig_paciencia = px.line(
+        paciencia_plot,
+        x="tiempo_entrega_real",
+        y="review_promedio_suavizado",
+        color="segmento_logistico",
+        markers=True,
+        title="Paciencia del cliente según tiempo de entrega y segmento logístico",
+        labels={
+            "tiempo_entrega_real": "Tiempo real de entrega (días)",
+            "review_promedio_suavizado": "Review promedio suavizado",
+            "segmento_logistico": "Segmento logístico"
+        },
+        hover_data={
+            "pedidos": True,
+            "review_promedio": ":.2f",
+            "porcentaje_reviews_bajas": ":.2f",
+            "reviews_bajas_suavizado": ":.2f"
+        }
+    )
+
+    fig_paciencia.add_hline(
+        y=4.0,
+        line_dash="dash",
+        annotation_text="Umbral de satisfacción: 4.0",
+        annotation_position="bottom right"
+    )
+
+    fig_paciencia.update_layout(
+        xaxis_title="Tiempo real de entrega (días)",
+        yaxis_title="Review promedio suavizado",
+        yaxis_range=[1, 5.1]
+    )
+
+    st.plotly_chart(fig_paciencia, use_container_width=True)
+
+    st.markdown("### Tabla de umbrales por segmento")
+
+    tabla_umbrales = umbrales_plot.rename(columns={
+        "segmento_logistico": "Segmento logístico",
+        "umbral_paciencia_dias": "Umbral de paciencia (días)",
+        "criterio_umbral": "Criterio",
+        "minimo_pedidos_por_dia": "Mínimo de pedidos por día",
+        "pedidos_analizados": "Pedidos analizados",
+        "review_promedio_general": "Review promedio general",
+        "porcentaje_reviews_bajas_promedio": "% reviews bajas promedio"
+    })
+
+    st.dataframe(
+        tabla_umbrales.round(2),
+        use_container_width=True
+    )
+
+    st.info("""
+    El gráfico muestra que la satisfacción no cae de la misma manera en todos los segmentos logísticos.
+    El umbral de paciencia permite identificar desde qué punto el tiempo de entrega empieza a deteriorar
+    de forma más clara la experiencia del cliente.
+
+    Esta lectura complementa el análisis de fallas extremas: no solo importa detectar entregas muy largas,
+    sino también entender desde cuándo el cliente empieza a penalizar la experiencia.
+    """)
 # ============================================================
 # SECCIÓN 6 — MODELO PREDICTIVO
 # ============================================================

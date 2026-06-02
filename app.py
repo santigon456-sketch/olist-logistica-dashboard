@@ -29,6 +29,7 @@ def cargar_csv(nombre_archivo):
 
 kpis = cargar_csv("kpis_generales.csv")
 segmentos = cargar_csv("metricas_segmento.csv")
+fallas = cargar_csv("fallas_vs_no_fallas.csv")
 
 # ============================================================
 # MENÚ LATERAL
@@ -40,7 +41,8 @@ seccion = st.sidebar.radio(
     "Navegación",
     [
         "Resumen ejecutivo",
-        "Segmentos logísticos"
+        "Segmentos logísticos",
+        "Fallas extremas y satisfacción"
     ]
 )
 
@@ -165,4 +167,100 @@ elif seccion == "Segmentos logísticos":
     y especialmente de **distinta región** muestran una proporción mayor de entregas extremadamente largas.
 
     Esto refuerza la idea de que la distancia territorial y el cruce regional agregan fricción logística.
+    """)
+
+# ============================================================
+# SECCIÓN 3 — FALLAS EXTREMAS Y SATISFACCIÓN
+# ============================================================
+
+elif seccion == "Fallas extremas y satisfacción":
+
+    st.title("⭐ Fallas extremas y satisfacción del cliente")
+
+    st.markdown("""
+    En esta sección se compara la operación estándar contra los pedidos clasificados como **fallas extremas**.
+
+    Una falla extrema corresponde a un pedido cuyo tiempo real de entrega supera el umbral extremo definido en el análisis exploratorio.
+    En este proyecto, ese umbral fue de **más de 42 días**.
+    """)
+
+    st.markdown("---")
+
+    st.subheader("Comparación general")
+
+    st.dataframe(fallas, use_container_width=True)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        fig_review = px.bar(
+            fallas,
+            x="tipo_pedido",
+            y="review_promedio",
+            text="review_promedio",
+            title="Review promedio según tipo de pedido",
+            labels={
+                "tipo_pedido": "Tipo de pedido",
+                "review_promedio": "Review promedio"
+            }
+        )
+
+        fig_review.update_traces(
+            texttemplate="%{text:.2f}",
+            textposition="outside"
+        )
+
+        fig_review.update_layout(
+            yaxis_range=[0, 5]
+        )
+
+        st.plotly_chart(fig_review, use_container_width=True)
+
+    with col2:
+        fig_bajas = px.bar(
+            fallas,
+            x="tipo_pedido",
+            y="porcentaje_reviews_bajas",
+            text="porcentaje_reviews_bajas",
+            title="Porcentaje de reviews bajas según tipo de pedido",
+            labels={
+                "tipo_pedido": "Tipo de pedido",
+                "porcentaje_reviews_bajas": "Reviews bajas (%)"
+            }
+        )
+
+        fig_bajas.update_traces(
+            texttemplate="%{text:.2f}%",
+            textposition="outside"
+        )
+
+        st.plotly_chart(fig_bajas, use_container_width=True)
+
+    st.subheader("Tiempo de entrega promedio")
+
+    fig_tiempo = px.bar(
+        fallas,
+        x="tipo_pedido",
+        y="tiempo_promedio",
+        text="tiempo_promedio",
+        title="Tiempo promedio de entrega: pedidos no extremos vs fallas extremas",
+        labels={
+            "tipo_pedido": "Tipo de pedido",
+            "tiempo_promedio": "Tiempo promedio de entrega (días)"
+        }
+    )
+
+    fig_tiempo.update_traces(
+        texttemplate="%{text:.2f} días",
+        textposition="outside"
+    )
+
+    st.plotly_chart(fig_tiempo, use_container_width=True)
+
+    st.error("""
+    Las fallas extremas representan una proporción baja del total de pedidos, pero tienen un impacto muy alto
+    en la experiencia del cliente.
+
+    Mientras los pedidos no extremos tienen una review promedio alta, las fallas extremas muestran una caída fuerte
+    en la satisfacción y concentran una proporción mucho mayor de reviews bajas.
     """)

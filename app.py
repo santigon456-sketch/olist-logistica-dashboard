@@ -352,41 +352,41 @@ elif seccion == "Mapa de riesgo":
         "review_promedio": "Review promedio"
     }
 
-fig_mapa = px.choropleth(
-    estados,
-    geojson=geojson_brasil,
-    locations="codarea",
-    featureidkey="id",
-    color=metrica,
-    hover_name="customer_state",
-    hover_data={
-        "pedidos": True,
-        "fallas_extremas": True,
-        "tasa_fallas_extremas": ":.2f",
-        "tiempo_promedio": ":.2f",
-        "review_promedio": ":.2f",
-        "codarea": False
-    },
-    color_continuous_scale="Reds",
-    title=nombres_metricas[metrica]
-)
+    fig_mapa = px.choropleth(
+        estados,
+        geojson=geojson_brasil,
+        locations="codarea",
+        featureidkey="id",
+        color=metrica,
+        hover_name="customer_state",
+        hover_data={
+            "pedidos": True,
+            "fallas_extremas": True,
+            "tasa_fallas_extremas": ":.2f",
+            "tiempo_promedio": ":.2f",
+            "review_promedio": ":.2f",
+            "codarea": False
+        },
+        color_continuous_scale="Reds",
+        title=nombres_metricas[metrica]
+    )
 
-fig_mapa.update_traces(
-    marker_line_width=0.7,
-    marker_line_color="white"
-)
+    fig_mapa.update_traces(
+        marker_line_width=0.7,
+        marker_line_color="white"
+    )
 
-fig_mapa.update_geos(
-    visible=False,
-    projection_type="mercator",
-    center={"lat": -14.2, "lon": -51.9},
-    projection_scale=3.2
-)
+    fig_mapa.update_geos(
+        visible=False,
+        projection_type="mercator",
+        center={"lat": -14.2, "lon": -51.9},
+        projection_scale=3.2
+    )
 
-fig_mapa.update_layout(
-    height=650,
-    margin={"r": 0, "t": 50, "l": 0, "b": 0}
-)
+    fig_mapa.update_layout(
+        height=650,
+        margin={"r": 0, "t": 50, "l": 0, "b": 0}
+    )
 
     st.plotly_chart(fig_mapa, use_container_width=True)
 
@@ -396,6 +396,7 @@ fig_mapa.update_layout(
     La cantidad de fallas extremas muestra dónde se acumulan más problemas.
     La tasa de fallas extremas muestra qué estados tienen mayor proporción de entregas extremadamente largas sobre el total de pedidos recibidos.
     """)
+    
 
 # ============================================================
 # SECCIÓN 5 — FALLAS EXTREMAS Y SATISFACCIÓN

@@ -42,6 +42,7 @@ fallas = cargar_csv("fallas_vs_no_fallas.csv")
 estados = cargar_csv("metricas_estado.csv")
 metricas_modelo = cargar_csv("metricas_modelo.csv")
 rutas = cargar_csv("metricas_rutas.csv")
+pedidos = cargar_csv("base_dashboard_pedidos.csv")
 geojson_brasil = cargar_geojson("brasil_estados.geojson")
 
 # ============================================================
@@ -74,6 +75,7 @@ seccion = st.sidebar.radio(
     "Navegación",
     [
         "Resumen ejecutivo",
+        "Desempeño logístico general",
         "Segmentos logísticos",
         "Riesgo por estado",
         "Mapa de riesgo",
@@ -1021,4 +1023,145 @@ elif seccion == "Rutas críticas":
     - **Riesgo relativo:** rutas con mayor tasa de fallas extremas presentan mayor proporción de entregas anormalmente largas.
 
     Las rutas más prioritarias para monitoreo son aquellas que combinan alto volumen con una tasa de fallas superior al promedio general.
+    """)
+# ============================================================
+# SECCIÓN 9 — DESEMPEÑO LOGÍSTICO GENERAL
+# ============================================================
+
+elif seccion == "Desempeño logístico general":
+
+    st.title("📦 Desempeño logístico general")
+
+    st.markdown("""
+    Esta sección presenta una mirada general sobre los tiempos reales de entrega.
+
+    Antes de analizar segmentos, estados o rutas específicas, es importante observar cómo se distribuye el tiempo
+    de entrega en toda la operación y dónde aparecen los pedidos con comportamiento extremo.
+    """)
+
+    st.markdown("---")
+
+    # ------------------------------------------------------------
+    # PREPARACIÓN DE DATOS
+    # ------------------------------------------------------------
+
+    pedidos_dashboard = pedidos.copy()
+
+    pedidos_dashboard["falla_extrema_bool"] = (
+        pedidos_dashboard["falla_extrema"]
+        .astype(str)
+        .str.lower()
+        .isin(["true", "1", "sí", "si"])
+    )
+
+    pedidos_dashboard["tipo_pedido"] = pedidos_dashboard["falla_extrema_bool"].map(
+        {
+            True: "Fallas extremas",
+            False: "Pedidos no extremos"
+        }
+    )
+
+    # ------------------------------------------------------------
+    # KPIS
+    # ------------------------------------------------------------
+
+    st.subheader("Indicadores generales de entrega")
+
+    total_pedidos = pedidos_dashboard["order_id"].nunique()
+    tiempo_promedio = pedidos_dashboard["tiempo_entrega_real"].mean()
+    tiempo_mediano = pedidos_dashboard["tiempo_entrega_real"].median()
+    p90_entrega = pedidos_dashboard["tiempo_entrega_real"].quantile(0.90)
+    fallas_extremas_total = pedidos_dashboard["falla_extrema_bool"].sum()
+    tasa_fallas = fallas_extremas_total / total_pedidos * 100
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    col1.metric("Pedidos analizados", f"{total_pedidos:,.0f}".replace(",", "."))
+    col2.metric("Tiempo promedio", f"{tiempo_promedio:.2f} días")
+    col3.metric("Tiempo mediano", f"{tiempo_mediano:.2f} días")
+    col4.metric("P90 entrega", f"{p90_entrega:.2f} días")
+    col5.metric("Fallas extremas", f"{tasa_fallas:.2f}%")
+
+    st.markdown("---")
+
+    # ------------------------------------------------------------
+    # HISTOGRAMA
+    # ------------------------------------------------------------
+
+    st.subheader("Distribución del tiempo real de entrega")
+
+    fig_hist = px.histogram(
+        pedidos_dashboard,
+        x="tiempo_entrega_real",
+        nbins=70,
+        title="Distribución del tiempo real de entrega",
+        labels={
+            "tiempo_entrega_real": "Tiempo real de entrega (días)",
+            "count": "Cantidad de pedidos"
+        }
+    )
+
+    fig_hist.add_vline(
+        x=42,
+        line_dash="dash",
+        line_color="red",
+        annotation_text="Umbral extremo: 42 días",
+        annotation_position="top right"
+    )
+
+    fig_hist.update_layout(
+        xaxis_title="Tiempo real de entrega (días)",
+        yaxis_title="Cantidad de pedidos"
+    )
+
+    st.plotly_chart(fig_hist, use_container_width=True)
+
+    st.info("""
+    La distribución muestra que la mayoría de los pedidos se concentra en tiempos de entrega relativamente bajos,
+    pero existe una cola de pedidos con tiempos muy superiores al comportamiento habitual.
+
+    En el análisis exploratorio, se definió como falla extrema a los pedidos con **más de 42 días** de entrega real.
+    """)
+
+    st.markdown("---")
+
+    # ------------------------------------------------------------
+    # COMPARACIÓN ENTRE PEDIDOS NO EXTREMOS Y FALLAS EXTREMAS
+    # ------------------------------------------------------------
+
+    st.subheader("Comparación entre pedidos no extremos y fallas extremas")
+
+    resumen_tipo = (
+        pedidos_dashboard
+        .groupby("tipo_pedido")
+        .agg(
+            pedidos=("order_id", "nunique"),
+            tiempo_promedio=("tiempo_entrega_real", "mean"),
+            tiempo_mediano=("tiempo_entrega_real", "median"),
+            p90_tiempo=("tiempo_entrega_real", lambda x: x.quantile(0.90))
+        )
+        .reset_index()
+    )
+
+    st.dataframe(resumen_tipo.round(2), use_container_width=True)
+
+    fig_box = px.box(
+        pedidos_dashboard,
+        x="tipo_pedido",
+        y="tiempo_entrega_real",
+        points=False,
+        title="Distribución del tiempo real según tipo de pedido",
+        labels={
+            "tipo_pedido": "Tipo de pedido",
+            "tiempo_entrega_real": "Tiempo real de entrega (días)"
+        }
+    )
+
+    st.plotly_chart(fig_box, use_container_width=True)
+
+    st.info("""
+    Esta comparación permite ver que las fallas extremas no son simplemente valores altos aislados:
+    forman un grupo de pedidos con tiempos de entrega muy superiores al resto de la operación.
+
+    Por eso, en el proyecto se analizan como eventos críticos y no se eliminan como simples outliers.
     """)

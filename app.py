@@ -1031,7 +1031,135 @@ elif seccion == "Rutas críticas":
     """)
 
     st.markdown("---")
+    st.markdown("---")
 
+    st.subheader("Top 5 rutas críticas: volumen vs tasa de fallas")
+
+    st.markdown("""
+    Para priorizar acciones operativas, no alcanza con mirar un solo indicador.
+
+    Una ruta puede ser crítica porque concentra muchas fallas extremas en términos absolutos,
+    o porque tiene una tasa de fallas muy alta en relación con su propio volumen de pedidos.
+
+    Por eso se comparan dos rankings complementarios:
+    """)
+
+    col1, col2 = st.columns(2)
+
+    # ------------------------------------------------------------
+    # TOP 5 POR VOLUMEN DE FALLAS EXTREMAS
+    # ------------------------------------------------------------
+
+    top5_volumen_fallas = (
+        rutas
+        .sort_values("fallas_extremas", ascending=False)
+        .head(5)
+        .copy()
+    )
+
+    with col1:
+        st.markdown("### Mayor volumen de fallas")
+
+        st.dataframe(
+            top5_volumen_fallas[
+                [
+                    "ruta",
+                    "segmento_logistico",
+                    "pedidos",
+                    "fallas_extremas",
+                    "tasa_fallas_extremas",
+                    "tiempo_promedio"
+                ]
+            ].round(2),
+            use_container_width=True
+        )
+
+        fig_top5_volumen = px.bar(
+            top5_volumen_fallas.sort_values("fallas_extremas", ascending=True),
+            x="fallas_extremas",
+            y="ruta",
+            orientation="h",
+            text="fallas_extremas",
+            title="Top 5 rutas por cantidad de fallas extremas",
+            labels={
+                "fallas_extremas": "Fallas extremas",
+                "ruta": "Ruta"
+            }
+        )
+
+        fig_top5_volumen.update_traces(
+            textposition="outside"
+        )
+
+        fig_top5_volumen.update_layout(
+            xaxis_title="Cantidad de fallas extremas",
+            yaxis_title="Ruta"
+        )
+
+        st.plotly_chart(fig_top5_volumen, use_container_width=True)
+
+    # ------------------------------------------------------------
+    # TOP 5 POR TASA DE FALLAS EXTREMAS
+    # ------------------------------------------------------------
+
+    top5_tasa_fallas = (
+        rutas
+        .sort_values("tasa_fallas_extremas", ascending=False)
+        .head(5)
+        .copy()
+    )
+
+    with col2:
+        st.markdown("### Mayor tasa de fallas")
+
+        st.dataframe(
+            top5_tasa_fallas[
+                [
+                    "ruta",
+                    "segmento_logistico",
+                    "pedidos",
+                    "fallas_extremas",
+                    "tasa_fallas_extremas",
+                    "tiempo_promedio"
+                ]
+            ].round(2),
+            use_container_width=True
+        )
+
+        fig_top5_tasa = px.bar(
+            top5_tasa_fallas.sort_values("tasa_fallas_extremas", ascending=True),
+            x="tasa_fallas_extremas",
+            y="ruta",
+            orientation="h",
+            text="tasa_fallas_extremas",
+            title="Top 5 rutas por tasa de fallas extremas",
+            labels={
+                "tasa_fallas_extremas": "Tasa de fallas extremas (%)",
+                "ruta": "Ruta"
+            }
+        )
+
+        fig_top5_tasa.update_traces(
+            texttemplate="%{text:.2f}%",
+            textposition="outside"
+        )
+
+        fig_top5_tasa.update_layout(
+            xaxis_title="Tasa de fallas extremas (%)",
+            yaxis_title="Ruta"
+        )
+
+        st.plotly_chart(fig_top5_tasa, use_container_width=True)
+
+    st.info("""
+    El ranking por **volumen de fallas** permite identificar rutas que concentran muchos casos críticos
+    y, por lo tanto, tienen mayor impacto operativo total.
+
+    El ranking por **tasa de fallas** permite detectar rutas proporcionalmente más riesgosas,
+    incluso si su volumen absoluto de pedidos es menor.
+
+    En conjunto, ambos rankings ayudan a priorizar rutas: unas por impacto total y otras por riesgo relativo.
+    """)
     # ------------------------------------------------------------
     # PREPARACIÓN DE DATOS
     # ------------------------------------------------------------

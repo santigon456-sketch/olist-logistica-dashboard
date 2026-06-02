@@ -1,0 +1,4 @@
+segmento_logistico,umbral_paciencia_dias,criterio_umbral,minimo_pedidos_por_dia,pedidos_analizados,review_promedio_general,porcentaje_reviews_bajas_promedio
+1. Mismo Estado,15,Review promedio suavizado < 4.0,30,34185,4.2790356394129985,10.027789966359514
+2. Misma Región,20,Review promedio suavizado < 4.0,30,24284,4.16868445615769,12.308515895239664
+3. Distinta Región,23,Review promedio suavizado < 4.0,30,34915,4.182929972791064,11.613919518831448

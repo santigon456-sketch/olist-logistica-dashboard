@@ -35,7 +35,6 @@ def cargar_csv(nombre_archivo):
 def cargar_geojson(nombre_archivo):
     with open(ASSETS_DIR / nombre_archivo, "r", encoding="utf-8") as f:
         return json.load(f)
-
 kpis = cargar_csv("kpis_generales.csv")
 segmentos = cargar_csv("metricas_segmento.csv")
 fallas = cargar_csv("fallas_vs_no_fallas.csv")
@@ -44,6 +43,7 @@ metricas_modelo = cargar_csv("metricas_modelo.csv")
 coeficientes_modelo = cargar_csv("coeficientes_modelo.csv")
 rutas = cargar_csv("metricas_rutas.csv")
 pedidos = cargar_csv("base_dashboard_pedidos.csv")
+impacto_sp_rj = cargar_csv("impacto_sp_rj_misma_region.csv")
 geojson_brasil = cargar_geojson("brasil_estados.geojson")
 
 # ============================================================
@@ -219,6 +219,122 @@ elif seccion == "Segmentos logísticos":
 
     Esto refuerza la idea de que la distancia territorial y el cruce regional agregan fricción logística.
     """)
+        st.markdown("---")
+
+    st.subheader("¿Por qué 'Misma Región' falla más de lo esperado?")
+
+    st.markdown("""
+    En principio, podría esperarse que los pedidos dentro de una misma región tengan un riesgo logístico intermedio:
+    mayor que los pedidos dentro del mismo estado, pero menor que los pedidos entre regiones distintas.
+
+    Sin embargo, el segmento **Misma Región** presenta una tasa de fallas extremas relativamente elevada.
+    Para entender si ese comportamiento es general del segmento o está concentrado en alguna ruta específica,
+    se compara el segmento completo contra el mismo segmento excluyendo la ruta **SP → RJ**.
+    """)
+
+    impacto_segmento = impacto_sp_rj.copy()
+
+    columnas_numericas_impacto = [
+        "pedidos",
+        "tiempo_promedio",
+        "tiempo_mediano",
+        "tasa_retraso_oficial",
+        "fallas_extremas",
+        "tasa_fallas_extremas"
+    ]
+
+    for columna in columnas_numericas_impacto:
+        if columna in impacto_segmento.columns:
+            impacto_segmento[columna] = pd.to_numeric(
+                impacto_segmento[columna],
+                errors="coerce"
+            )
+
+    escenario_completo = impacto_segmento[
+        impacto_segmento["escenario"].str.contains("completa", case=False, na=False)
+    ].iloc[0]
+
+    escenario_sin_sp_rj = impacto_segmento[
+        impacto_segmento["escenario"].str.contains("sin", case=False, na=False)
+    ].iloc[0]
+
+    tasa_completa = escenario_completo["tasa_fallas_extremas"]
+    tasa_sin_sp_rj = escenario_sin_sp_rj["tasa_fallas_extremas"]
+    diferencia_tasa = tasa_completa - tasa_sin_sp_rj
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric(
+        "Misma Región completa",
+        f"{tasa_completa:.2f}%",
+        help="Tasa de fallas extremas considerando todas las rutas de Misma Región."
+    )
+
+    col2.metric(
+        "Misma Región sin SP → RJ",
+        f"{tasa_sin_sp_rj:.2f}%",
+        help="Tasa de fallas extremas excluyendo la ruta SP → RJ."
+    )
+
+    col3.metric(
+        "Diferencia",
+        f"{diferencia_tasa:.2f} p.p.",
+        help="Diferencia en puntos porcentuales entre ambos escenarios."
+    )
+
+    tabla_impacto = impacto_segmento.rename(columns={
+        "escenario": "Escenario",
+        "pedidos": "Pedidos",
+        "tiempo_promedio": "Tiempo promedio",
+        "tiempo_mediano": "Tiempo mediano",
+        "tasa_retraso_oficial": "Tasa de retraso oficial (%)",
+        "fallas_extremas": "Fallas extremas",
+        "tasa_fallas_extremas": "Tasa de fallas extremas (%)"
+    })
+
+    st.dataframe(
+        tabla_impacto.round(2),
+        use_container_width=True
+    )
+
+    fig_impacto_sp_rj = px.bar(
+        impacto_segmento,
+        x="escenario",
+        y="tasa_fallas_extremas",
+        text="tasa_fallas_extremas",
+        title="Impacto de la ruta SP → RJ sobre el segmento Misma Región",
+        labels={
+            "escenario": "Escenario",
+            "tasa_fallas_extremas": "Tasa de fallas extremas (%)"
+        }
+    )
+
+    fig_impacto_sp_rj.update_traces(
+        texttemplate="%{text:.2f}%",
+        textposition="outside"
+    )
+
+    fig_impacto_sp_rj.update_layout(
+        xaxis_title="Escenario",
+        yaxis_title="Tasa de fallas extremas (%)"
+    )
+
+    st.plotly_chart(fig_impacto_sp_rj, use_container_width=True)
+
+    if diferencia_tasa > 0:
+        st.success(f"""
+        Al excluir la ruta **SP → RJ**, la tasa de fallas extremas del segmento **Misma Región**
+        baja de **{tasa_completa:.2f}%** a **{tasa_sin_sp_rj:.2f}%**.
+
+        Esto sugiere que el peor desempeño relativo de **Misma Región** no es homogéneo,
+        sino que está fuertemente influido por una ruta crítica específica: **SP → RJ**.
+        """)
+    else:
+        st.info("""
+        La comparación muestra que la exclusión de SP → RJ no reduce la tasa de fallas extremas.
+        En ese caso, el problema del segmento Misma Región debería interpretarse como más distribuido
+        entre varias rutas del segmento.
+        """)
 
 # ============================================================
 # SECCIÓN 3 — RIESGO POR ESTADO

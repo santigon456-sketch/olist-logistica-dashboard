@@ -219,7 +219,8 @@ elif seccion == "Segmentos logísticos":
 
     Esto refuerza la idea de que la distancia territorial y el cruce regional agregan fricción logística.
     """)
-        st.markdown("---")
+    
+    st.markdown("---")
 
     st.subheader("¿Por qué 'Misma Región' falla más de lo esperado?")
 

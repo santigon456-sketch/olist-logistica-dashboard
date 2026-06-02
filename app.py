@@ -30,6 +30,7 @@ def cargar_csv(nombre_archivo):
 kpis = cargar_csv("kpis_generales.csv")
 segmentos = cargar_csv("metricas_segmento.csv")
 fallas = cargar_csv("fallas_vs_no_fallas.csv")
+estados = cargar_csv("metricas_estado.csv")
 
 # ============================================================
 # MENÚ LATERAL
@@ -42,9 +43,11 @@ seccion = st.sidebar.radio(
     [
         "Resumen ejecutivo",
         "Segmentos logísticos",
+        "Riesgo por estado",
         "Fallas extremas y satisfacción"
     ]
 )
+
 
 # ============================================================
 # SECCIÓN 1 — RESUMEN EJECUTIVO
@@ -264,3 +267,129 @@ elif seccion == "Fallas extremas y satisfacción":
     Mientras los pedidos no extremos tienen una review promedio alta, las fallas extremas muestran una caída fuerte
     en la satisfacción y concentran una proporción mucho mayor de reviews bajas.
     """)
+# ============================================================
+# SECCIÓN 4 — RIESGO POR ESTADO
+# ============================================================
+
+elif seccion == "Riesgo por estado":
+
+    st.title("🗺️ Riesgo logístico por estado")
+
+    st.markdown("""
+    En esta sección se analiza cómo se distribuyen las fallas extremas según el estado de destino del cliente.
+
+    Es importante distinguir entre dos miradas:
+
+    - **Cantidad de fallas extremas:** muestra dónde se acumula mayor volumen de problemas.
+    - **Tasa de fallas extremas:** muestra el riesgo relativo, es decir, qué proporción de pedidos termina en una entrega extremadamente larga.
+
+    Un estado puede tener muchas fallas simplemente porque tiene muchos pedidos. Por eso, la tasa permite una comparación más justa entre estados.
+    """)
+
+    st.markdown("---")
+
+    st.subheader("Tabla de métricas por estado")
+
+    tabla_estados = estados.copy()
+
+    columnas_redondear = [
+        "tasa_fallas_extremas",
+        "tiempo_promedio",
+        "tiempo_mediano",
+        "review_promedio"
+    ]
+
+    for col in columnas_redondear:
+        if col in tabla_estados.columns:
+            tabla_estados[col] = tabla_estados[col].round(2)
+
+    st.dataframe(tabla_estados, use_container_width=True)
+
+    st.markdown("---")
+
+    col1, col2 = st.columns(2)
+
+    # ------------------------------------------------------------
+    # TOP ESTADOS POR CANTIDAD DE FALLAS
+    # ------------------------------------------------------------
+
+    with col1:
+
+        st.subheader("Top estados por cantidad de fallas extremas")
+
+        top_fallas = (
+            estados
+            .sort_values("fallas_extremas", ascending=False)
+            .head(10)
+        )
+
+        fig_fallas = px.bar(
+            top_fallas,
+            x="fallas_extremas",
+            y="customer_state",
+            orientation="h",
+            text="fallas_extremas",
+            title="Estados con mayor cantidad de fallas extremas",
+            labels={
+                "fallas_extremas": "Cantidad de fallas extremas",
+                "customer_state": "Estado"
+            }
+        )
+
+        fig_fallas.update_layout(
+            yaxis={"categoryorder": "total ascending"}
+        )
+
+        fig_fallas.update_traces(
+            textposition="outside"
+        )
+
+        st.plotly_chart(fig_fallas, use_container_width=True)
+
+    # ------------------------------------------------------------
+    # TOP ESTADOS POR TASA DE FALLAS
+    # ------------------------------------------------------------
+
+    with col2:
+
+        st.subheader("Top estados por tasa de fallas extremas")
+
+        top_tasa = (
+            estados
+            .sort_values("tasa_fallas_extremas", ascending=False)
+            .head(10)
+        )
+
+        fig_tasa = px.bar(
+            top_tasa,
+            x="tasa_fallas_extremas",
+            y="customer_state",
+            orientation="h",
+            text="tasa_fallas_extremas",
+            title="Estados con mayor riesgo relativo",
+            labels={
+                "tasa_fallas_extremas": "Tasa de fallas extremas (%)",
+                "customer_state": "Estado"
+            }
+        )
+
+        fig_tasa.update_layout(
+            yaxis={"categoryorder": "total ascending"}
+        )
+
+        fig_tasa.update_traces(
+            texttemplate="%{text:.2f}%",
+            textposition="outside"
+        )
+
+        st.plotly_chart(fig_tasa, use_container_width=True)
+
+    st.info("""
+    Esta comparación permite separar volumen de riesgo.
+
+    Los estados con mayor cantidad de fallas extremas pueden estar asociados a mayor volumen de pedidos.
+    En cambio, los estados con mayor tasa de fallas extremas indican mayor riesgo relativo para los pedidos que llegan a ese destino.
+
+    En el siguiente paso, esta misma información se puede representar como un mapa de Brasil coloreado por estado.
+    """)
+    

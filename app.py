@@ -103,7 +103,7 @@ if seccion == "Resumen ejecutivo":
     evaluar el impacto de las fallas extremas en la satisfacción del cliente y presentar una primera aproximación
     predictiva mediante regresión lineal.
     """)
-        st.markdown("""
+    st.markdown("""
     ### Ficha técnica del análisis
 
     - **Dataset:** Brazilian E-Commerce Public Dataset by Olist.

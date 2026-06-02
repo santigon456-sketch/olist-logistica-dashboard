@@ -1,0 +1,3 @@
+escenario,pedidos,tiempo_promedio,tiempo_mediano,tasa_retraso_oficial,fallas_extremas,tasa_fallas_extremas
+Misma Región completa,25429,13.281018770932315,11.0,9.233585170184593,436,1.6979515538593348
+Misma Región sin SP → RJ,17258,12.107618938175133,10.0,6.619168007354631,133,0.7641921397379913

@@ -41,6 +41,7 @@ segmentos = cargar_csv("metricas_segmento.csv")
 fallas = cargar_csv("fallas_vs_no_fallas.csv")
 estados = cargar_csv("metricas_estado.csv")
 metricas_modelo = cargar_csv("metricas_modelo.csv")
+coeficientes_modelo = cargar_csv("coeficientes_modelo.csv")
 rutas = cargar_csv("metricas_rutas.csv")
 pedidos = cargar_csv("base_dashboard_pedidos.csv")
 geojson_brasil = cargar_geojson("brasil_estados.geojson")
@@ -616,7 +617,84 @@ elif seccion == "Modelo predictivo":
         )
 
         st.plotly_chart(fig_r2, use_container_width=True)
+    st.markdown("---")
 
+    st.subheader("Coeficientes principales del modelo múltiple")
+
+    st.markdown("""
+    Los coeficientes permiten interpretar qué variables aparecen asociadas con aumentos o disminuciones
+    en el tiempo real de entrega estimado por el modelo.
+
+    Un coeficiente positivo indica que la variable está asociada con un aumento del tiempo de entrega estimado.
+    Un coeficiente negativo indica que la variable está asociada con una disminución del tiempo de entrega estimado.
+
+    En el caso de variables categóricas, la comparación se realiza contra una categoría base o de referencia.
+    """)
+
+    tabla_coeficientes = coeficientes_modelo.copy()
+
+    columnas_coeficientes = [
+        "variable_limpia",
+        "coeficiente",
+        "direccion"
+    ]
+
+    columnas_coeficientes = [
+        col for col in columnas_coeficientes
+        if col in tabla_coeficientes.columns
+    ]
+
+    if "coeficiente" in tabla_coeficientes.columns:
+        tabla_coeficientes["coeficiente"] = tabla_coeficientes["coeficiente"].round(3)
+
+    st.dataframe(
+        tabla_coeficientes[columnas_coeficientes],
+        use_container_width=True
+    )
+
+    coeficientes_grafico = coeficientes_modelo.copy()
+
+    if "coeficiente_abs" in coeficientes_grafico.columns:
+        coeficientes_grafico = (
+            coeficientes_grafico
+            .sort_values("coeficiente_abs", ascending=True)
+            .tail(15)
+        )
+    else:
+        coeficientes_grafico["coeficiente_abs"] = coeficientes_grafico["coeficiente"].abs()
+        coeficientes_grafico = (
+            coeficientes_grafico
+            .sort_values("coeficiente_abs", ascending=True)
+            .tail(15)
+        )
+
+    fig_coef = px.bar(
+        coeficientes_grafico,
+        x="coeficiente",
+        y="variable_limpia",
+        orientation="h",
+        color="direccion",
+        title="Principales coeficientes del modelo múltiple",
+        labels={
+            "coeficiente": "Coeficiente",
+            "variable_limpia": "Variable",
+            "direccion": "Dirección del efecto"
+        }
+    )
+
+    fig_coef.update_layout(
+        xaxis_title="Coeficiente estimado",
+        yaxis_title="Variable"
+    )
+
+    st.plotly_chart(fig_coef, use_container_width=True)
+
+    st.info("""
+    Los coeficientes refuerzan la interpretación logística del modelo: algunas regiones, segmentos y rutas específicas
+    aparecen asociadas con mayores tiempos de entrega estimados.
+
+    Estos valores no deben interpretarse como causalidad directa, sino como asociaciones dentro del modelo lineal.
+    """)
     st.info("""
     El modelo múltiple obtiene el mejor desempeño: reduce el error promedio absoluto a **5,25 días**
     y alcanza un **R² de 0,24**.

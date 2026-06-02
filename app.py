@@ -40,6 +40,7 @@ kpis = cargar_csv("kpis_generales.csv")
 segmentos = cargar_csv("metricas_segmento.csv")
 fallas = cargar_csv("fallas_vs_no_fallas.csv")
 estados = cargar_csv("metricas_estado.csv")
+metricas_modelo = cargar_csv("metricas_modelo.csv")
 geojson_brasil = cargar_geojson("brasil_estados.geojson")
 
 # ============================================================
@@ -75,7 +76,8 @@ seccion = st.sidebar.radio(
         "Segmentos logísticos",
         "Riesgo por estado",
         "Mapa de riesgo",
-        "Fallas extremas y satisfacción"
+        "Fallas extremas y satisfacción",
+        "Modelo predictivo"
     ]
 )
 
@@ -499,3 +501,123 @@ elif seccion == "Fallas extremas y satisfacción":
     Mientras los pedidos no extremos tienen una review promedio alta, las fallas extremas muestran una caída fuerte
     en la satisfacción y concentran una proporción mucho mayor de reviews bajas.
     """)  
+
+# ============================================================
+# SECCIÓN 6 — MODELO PREDICTIVO
+# ============================================================
+
+elif seccion == "Modelo predictivo":
+
+    st.title("🤖 Modelo predictivo simple")
+
+    st.markdown("""
+    En esta sección se resume la primera aproximación al modelado predictivo del proyecto.
+
+    El objetivo del modelo fue estimar el **tiempo real de entrega** de un pedido a partir de variables logísticas,
+    geográficas y operativas.
+
+    Se compararon tres enfoques:
+
+    - **Baseline:** predice siempre el promedio del tiempo real de entrega.
+    - **Regresión lineal simple:** usa solamente el tiempo estimado de entrega.
+    - **Regresión lineal múltiple:** incorpora variables logísticas adicionales, como región, segmento, peso, flete y rutas específicas.
+    """)
+
+    st.markdown("---")
+
+    st.subheader("Comparación de modelos")
+
+    tabla_modelo = metricas_modelo.copy()
+
+    columnas_redondear = [
+        "R2",
+        "MAE_dias",
+        "MSE_dias",
+        "RMSE_dias",
+        "mejora_MAE_vs_baseline_pct",
+        "mejora_RMSE_vs_baseline_pct"
+    ]
+
+    for col in columnas_redondear:
+        if col in tabla_modelo.columns:
+            tabla_modelo[col] = tabla_modelo[col].round(2)
+
+    st.dataframe(tabla_modelo, use_container_width=True)
+
+    st.markdown("---")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.subheader("Error promedio absoluto")
+
+        fig_mae = px.bar(
+            metricas_modelo,
+            x="Modelo",
+            y="MAE_dias",
+            text="MAE_dias",
+            title="MAE por modelo",
+            labels={
+                "Modelo": "Modelo",
+                "MAE_dias": "MAE (días)"
+            }
+        )
+
+        fig_mae.update_traces(
+            texttemplate="%{text:.2f} días",
+            textposition="outside"
+        )
+
+        fig_mae.update_layout(
+            xaxis_tickangle=-20
+        )
+
+        st.plotly_chart(fig_mae, use_container_width=True)
+
+    with col2:
+
+        st.subheader("Capacidad explicativa del modelo")
+
+        fig_r2 = px.bar(
+            metricas_modelo,
+            x="Modelo",
+            y="R2",
+            text="R2",
+            title="R² por modelo",
+            labels={
+                "Modelo": "Modelo",
+                "R2": "R²"
+            }
+        )
+
+        fig_r2.update_traces(
+            texttemplate="%{text:.2f}",
+            textposition="outside"
+        )
+
+        fig_r2.update_layout(
+            xaxis_tickangle=-20
+        )
+
+        st.plotly_chart(fig_r2, use_container_width=True)
+
+    st.info("""
+    El modelo múltiple obtiene el mejor desempeño: reduce el error promedio absoluto a **5,25 días**
+    y alcanza un **R² de 0,24**.
+
+    Esto indica que las variables logísticas aportan información para estimar el tiempo real de entrega.
+    Sin embargo, el R² moderado-bajo muestra que una parte importante de la variabilidad sigue sin explicarse,
+    lo cual es esperable en un fenómeno logístico con rutas críticas, outliers y factores operativos no observados.
+    """)
+
+    st.markdown("""
+    ### Lectura ejecutiva
+
+    El modelado no busca reemplazar el análisis exploratorio, sino complementarlo.
+
+    La regresión lineal simple muestra que el tiempo estimado de entrega contiene información útil.
+    La regresión lineal múltiple mejora el resultado al incorporar variables logísticas adicionales.
+
+    Por lo tanto, el modelo refuerza la idea central del proyecto: **la logística importa y no puede evaluarse únicamente con la fecha prometida de entrega**.
+    """)

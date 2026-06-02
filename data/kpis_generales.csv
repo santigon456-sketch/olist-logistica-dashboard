@@ -1,0 +1,8 @@
+kpi,valor,unidad
+Pedidos analizados,96470,pedidos
+Tiempo promedio de entrega,12.09,días
+Tiempo mediano de entrega,10,días
+Tasa de retraso oficial,7.57,%
+Cumplimiento oficial,92.43,%
+Colchón promedio,11.28,días
+Fallas extremas,1.37,%

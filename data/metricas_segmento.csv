@@ -1,0 +1,4 @@
+segmento_logistico,pedidos,fallas_extremas,tasa_fallas_extremas,indice_riesgo
+1. Mismo Estado,34575,107,0.31,0.23
+2. Misma Región,25289,436,1.72,1.26
+3. Distinta Región,36606,777,2.12,1.55

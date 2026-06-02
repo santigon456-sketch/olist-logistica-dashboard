@@ -1413,7 +1413,7 @@ elif seccion == "Rutas críticas":
 
     Las rutas más prioritarias para monitoreo son aquellas que combinan alto volumen con una tasa de fallas superior al promedio general.
     """)
-        st.markdown("---")
+    st.markdown("---")
 
     st.subheader("Mapa de top rutas críticas")
 

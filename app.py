@@ -42,6 +42,7 @@ estados = cargar_csv("metricas_estado.csv")
 metricas_modelo = cargar_csv("metricas_modelo.csv")
 coeficientes_modelo = cargar_csv("coeficientes_modelo.csv")
 rutas = cargar_csv("metricas_rutas.csv")
+top_rutas_mapa = cargar_csv("top_rutas_mapa.csv")
 pedidos = cargar_csv("base_dashboard_pedidos.csv")
 impacto_sp_rj = cargar_csv("impacto_sp_rj_misma_region.csv")
 geojson_brasil = cargar_geojson("brasil_estados.geojson")
@@ -1411,6 +1412,124 @@ elif seccion == "Rutas críticas":
     - **Riesgo relativo:** rutas con mayor tasa de fallas extremas presentan mayor proporción de entregas anormalmente largas.
 
     Las rutas más prioritarias para monitoreo son aquellas que combinan alto volumen con una tasa de fallas superior al promedio general.
+    """)
+        st.markdown("---")
+
+    st.subheader("Mapa de top rutas críticas")
+
+    st.markdown("""
+    Este mapa muestra las rutas más críticas desde dos perspectivas complementarias:
+
+    - **Volumen:** rutas que concentran mayor cantidad absoluta de fallas extremas.
+    - **Tasa:** rutas con mayor proporción de fallas extremas respecto de sus pedidos.
+    - **Ambas:** rutas que aparecen en los dos rankings.
+
+    Esta distinción es importante porque una ruta puede ser prioritaria por impacto operativo total,
+    aunque su tasa no sea la más alta, o puede ser riesgosa proporcionalmente aunque tenga menor volumen.
+    """)
+
+    rutas_mapa = top_rutas_mapa.copy()
+
+    columnas_numericas_mapa = [
+        "pedidos",
+        "fallas_extremas",
+        "tasa_fallas_extremas",
+        "tiempo_promedio",
+        "lat_origen",
+        "lon_origen",
+        "lat_destino",
+        "lon_destino"
+    ]
+
+    for columna in columnas_numericas_mapa:
+        if columna in rutas_mapa.columns:
+            rutas_mapa[columna] = pd.to_numeric(rutas_mapa[columna], errors="coerce")
+
+    colores_criticidad = {
+        "Volumen": "red",
+        "Tasa": "blue",
+        "Ambas": "purple"
+    }
+
+    fig_rutas_mapa = go.Figure()
+
+    # Base del mapa: estados de Brasil
+    fig_rutas_mapa.add_trace(
+        go.Choroplethmapbox(
+            geojson=geojson_brasil,
+            locations=estados["codarea"],
+            z=[1] * len(estados),
+            featureidkey="id",
+            colorscale=[[0, "lightgray"], [1, "lightgray"]],
+            marker_opacity=0.25,
+            marker_line_width=0.5,
+            showscale=False,
+            hoverinfo="skip"
+        )
+    )
+
+    # Líneas de rutas críticas
+    for _, fila in rutas_mapa.iterrows():
+
+        tipo = fila["tipo_criticidad"]
+        color = colores_criticidad.get(tipo, "gray")
+
+        texto_hover = (
+            f"<b>Ruta: {fila['ruta']}</b><br>"
+            f"Tipo de criticidad: {tipo}<br>"
+            f"Segmento: {fila['segmento_logistico']}<br>"
+            f"Pedidos: {fila['pedidos']:.0f}<br>"
+            f"Fallas extremas: {fila['fallas_extremas']:.0f}<br>"
+            f"Tasa de fallas extremas: {fila['tasa_fallas_extremas']:.2f}%<br>"
+            f"Tiempo promedio: {fila['tiempo_promedio']:.2f} días"
+        )
+
+        fig_rutas_mapa.add_trace(
+            go.Scattermapbox(
+                mode="lines+markers",
+                lon=[fila["lon_origen"], fila["lon_destino"]],
+                lat=[fila["lat_origen"], fila["lat_destino"]],
+                line=dict(width=4, color=color),
+                marker=dict(size=8, color=color),
+                name=tipo,
+                text=texto_hover,
+                hovertemplate="%{text}<extra></extra>",
+                showlegend=False
+            )
+        )
+
+    # Leyenda manual
+    for tipo, color in colores_criticidad.items():
+        if tipo in rutas_mapa["tipo_criticidad"].unique():
+            fig_rutas_mapa.add_trace(
+                go.Scattermapbox(
+                    mode="markers",
+                    lon=[None],
+                    lat=[None],
+                    marker=dict(size=10, color=color),
+                    name=tipo,
+                    showlegend=True
+                )
+            )
+
+    fig_rutas_mapa.update_layout(
+        mapbox_style="carto-positron",
+        mapbox_zoom=3.3,
+        mapbox_center={"lat": -14.2, "lon": -51.9},
+        height=700,
+        margin={"r": 0, "t": 40, "l": 0, "b": 0},
+        title="Top rutas críticas por volumen y por tasa de fallas extremas",
+        legend_title_text="Tipo de criticidad"
+    )
+
+    st.plotly_chart(fig_rutas_mapa, use_container_width=True)
+
+    st.info("""
+    El mapa permite distinguir rutas críticas por **impacto absoluto** y por **riesgo relativo**.
+
+    Las rutas marcadas por volumen concentran más fallas extremas en cantidad total.
+    Las rutas marcadas por tasa muestran un peor desempeño proporcional.
+    Si una ruta aparece como **Ambas**, debería considerarse especialmente prioritaria.
     """)
 # ============================================================
 # SECCIÓN 9 — DESEMPEÑO LOGÍSTICO GENERAL

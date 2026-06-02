@@ -1,8 +1,10 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import json
 from pathlib import Path
+
 
 # ============================================================
 # CONFIGURACIÓN GENERAL DEL DASHBOARD
@@ -352,40 +354,46 @@ elif seccion == "Mapa de riesgo":
         "review_promedio": "Review promedio"
     }
 
-    fig_mapa = px.choropleth(
-        estados,
-        geojson=geojson_brasil,
-        locations="codarea",
-        featureidkey="id",
-        color=metrica,
-        hover_name="customer_state",
-        hover_data={
-            "pedidos": True,
-            "fallas_extremas": True,
-            "tasa_fallas_extremas": ":.2f",
-            "tiempo_promedio": ":.2f",
-            "review_promedio": ":.2f",
-            "codarea": False
-        },
-        color_continuous_scale="Reds",
-        title=nombres_metricas[metrica]
-    )
+    estados_mapa = estados.copy()
 
-    fig_mapa.update_traces(
-        marker_line_width=0.7,
-        marker_line_color="white"
-    )
-
-    fig_mapa.update_geos(
-        visible=False,
-        projection_type="mercator",
-        center={"lat": -14.2, "lon": -51.9},
-        projection_scale=3.2
+    fig_mapa = go.Figure(
+        go.Choroplethmapbox(
+            geojson=geojson_brasil,
+            locations=estados_mapa["codarea"],
+            z=estados_mapa[metrica],
+            featureidkey="id",
+            colorscale="Reds",
+            marker_opacity=0.85,
+            marker_line_width=0.6,
+            text=estados_mapa["customer_state"],
+            customdata=estados_mapa[
+                [
+                    "pedidos",
+                    "fallas_extremas",
+                    "tasa_fallas_extremas",
+                    "tiempo_promedio",
+                    "review_promedio"
+                ]
+            ],
+            hovertemplate=(
+                "<b>Estado: %{text}</b><br>"
+                "Pedidos: %{customdata[0]}<br>"
+                "Fallas extremas: %{customdata[1]}<br>"
+                "Tasa de fallas extremas: %{customdata[2]:.2f}%<br>"
+                "Tiempo promedio: %{customdata[3]:.2f} días<br>"
+                "Review promedio: %{customdata[4]:.2f}<extra></extra>"
+            ),
+            colorbar_title=nombres_metricas[metrica]
+        )
     )
 
     fig_mapa.update_layout(
+        mapbox_style="carto-positron",
+        mapbox_zoom=3.1,
+        mapbox_center={"lat": -14.2, "lon": -51.9},
         height=650,
-        margin={"r": 0, "t": 50, "l": 0, "b": 0}
+        margin={"r": 0, "t": 40, "l": 0, "b": 0},
+        title=nombres_metricas[metrica]
     )
 
     st.plotly_chart(fig_mapa, use_container_width=True)
@@ -396,8 +404,6 @@ elif seccion == "Mapa de riesgo":
     La cantidad de fallas extremas muestra dónde se acumulan más problemas.
     La tasa de fallas extremas muestra qué estados tienen mayor proporción de entregas extremadamente largas sobre el total de pedidos recibidos.
     """)
-    
-
 # ============================================================
 # SECCIÓN 5 — FALLAS EXTREMAS Y SATISFACCIÓN
 # ============================================================

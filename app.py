@@ -78,6 +78,15 @@ La operación presenta un alto cumplimiento frente a la fecha prometida, pero es
 Al analizar el tiempo real de entrega, los segmentos logísticos, las rutas y las fallas extremas, aparecen diferencias
 operativas relevantes que impactan en la experiencia del cliente.
 """)
+st.markdown("---")
+
+st.subheader("Navegación del dashboard")
+
+st.page_link(
+    "pages/1_Segmentos_Logisticos.py",
+    label="Ir a Segmentos logísticos",
+    icon="🧭"
+)
 
 st.markdown("""
 ### Lectura ejecutiva

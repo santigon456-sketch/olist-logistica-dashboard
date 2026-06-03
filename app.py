@@ -125,6 +125,37 @@ if seccion == "Resumen ejecutivo":
     - **Enfoque del proyecto:** desempeño logístico, tiempos de entrega, rutas críticas, fallas extremas y satisfacción del cliente.
     """)
 
+    with st.expander("📘 Glosario de variables utilizadas en el análisis"):
+        st.markdown("""
+        Para facilitar la lectura del dashboard, se resumen a continuación las principales variables utilizadas:
+
+        - **Tiempo real de entrega:** cantidad de días que tardó efectivamente un pedido en llegar al cliente.
+
+        - **Tiempo estimado de entrega:** cantidad de días prometida o prevista por la plataforma para entregar el pedido.
+
+        - **Días de retraso:** diferencia entre la fecha real de entrega y la fecha estimada. Si el valor es positivo, el pedido llegó después de lo prometido.
+
+        - **Pedido retrasado:** indica si el pedido llegó después de la fecha estimada de entrega.
+
+        - **Cumplimiento oficial:** porcentaje de pedidos que llegaron dentro de la fecha estimada o antes.
+
+        - **Colchón de seguridad:** margen de días entre el tiempo estimado y el tiempo real de entrega.  
+          En términos simples, mide cuánto margen tenía la promesa de entrega.  
+          Por ejemplo, si un pedido estaba prometido para 20 días y llegó en 12, hubo un colchón de 8 días.
+
+        - **Falla extrema:** pedido con un tiempo real de entrega anormalmente alto. En este proyecto se considera falla extrema cuando el pedido tarda más de **42 días**.
+
+        - **Review promedio:** calificación promedio dada por el cliente, en una escala de 1 a 5 estrellas.
+
+        - **Review baja:** calificación negativa o insatisfactoria, definida en el análisis como una review de 1 o 2 estrellas.
+
+        - **Segmento logístico:** clasificación del pedido según la relación geográfica entre vendedor y comprador: mismo estado, misma región o distinta región.
+
+        - **Tasa de fallas extremas:** porcentaje de pedidos que terminaron siendo fallas extremas dentro de un grupo, estado, ruta o segmento.
+
+        - **Índice de riesgo:** comparación entre la tasa de fallas de un segmento y la tasa global del proyecto. Un valor mayor a 1 indica riesgo superior al promedio.
+        """)
+
     st.markdown("---")
 
     st.header("Resumen ejecutivo")

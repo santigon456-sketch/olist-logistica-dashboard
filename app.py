@@ -1063,9 +1063,20 @@ elif seccion == "Conclusiones y recomendaciones":
 
     Esta mirada territorial permite diferenciar entre volumen de pedidos y riesgo relativo.
     """)
+    st.markdown("""
+    ### 4. El riesgo regional tiene distintas formas de criticidad
+
+    El análisis por región del comprador muestra que el riesgo operativo no debe interpretarse con un único indicador.
+
+    La región **Norte** presenta el mayor riesgo relativo, con una tasa de fallas extremas superior al promedio global.  
+    El **Nordeste** combina riesgo operativo elevado con peor satisfacción promedio.  
+    En cambio, el **Sudeste**, especialmente por el peso operativo de São Paulo, requiere seguimiento por volumen absoluto de pedidos y fallas.
+
+    Esto muestra que una región puede ser crítica por tasa de fallas, por volumen operativo o por impacto en la satisfacción del cliente.
+    """)
 
     st.markdown("""
-    ### 4. Las fallas extremas son pocas, pero impactan mucho en la satisfacción
+    ### 5. Las fallas extremas son pocas, pero impactan mucho en la satisfacción
 
     Aunque las fallas extremas representan una proporción reducida del total de pedidos, presentan tiempos de entrega
     muy superiores y una caída fuerte en las calificaciones de los clientes.
@@ -1074,7 +1085,7 @@ elif seccion == "Conclusiones y recomendaciones":
     """)
 
     st.markdown("""
-    ### 5. El modelo predictivo confirma que las variables logísticas aportan información
+    ### 6. El modelo predictivo confirma que las variables logísticas aportan información
 
     La regresión lineal múltiple mejora al baseline y al modelo simple, lo que indica que variables como región,
     segmento logístico, rutas específicas y características del pedido ayudan a estimar el tiempo real de entrega.
@@ -1113,21 +1124,28 @@ elif seccion == "Conclusiones y recomendaciones":
 
     with col2:
         st.success("""
-        **4. Monitorear estados y rutas críticas**
+        **4. Priorizar regiones según tipo de riesgo**
+
+        Diferenciar regiones críticas por riesgo relativo, volumen absoluto y satisfacción.
+        El Norte requiere seguimiento por tasa de fallas, el Nordeste por combinación de riesgo y baja satisfacción,
+        y el Sudeste/São Paulo por escala operativa.
+        """)
+        st.success("""
+        **5. Monitorear estados y rutas críticas**
 
         Usar mapas y rankings para identificar destinos o rutas con mayor concentración de problemas
         y mayor riesgo relativo.
         """)
 
         st.success("""
-        **5. Revisar promesas de entrega por región**
+        **6. Revisar promesas de entrega por región**
 
         El colchón de seguridad debería analizarse por segmento y región para detectar promesas demasiado amplias
         o zonas con mayor incertidumbre logística.
         """)
 
         st.success("""
-        **6. Profundizar el modelo con variables operativas adicionales**
+        **7. Profundizar el modelo con variables operativas adicionales**
 
         Para una predicción más robusta sería útil incorporar información como transportista, centros logísticos,
         capacidad operativa, clima o eventos excepcionales.
@@ -1949,17 +1967,27 @@ elif seccion == "Riesgo por región del comprador":
             "region_comprador": "Región"
         }
     )
+fig_volumen_riesgo.add_hline(
+    y=tasa_global,
+    line_dash="dash",
+    line_color="#1F2937",
+    annotation_text=f"Promedio global: {tasa_global:.2f}%",
+    annotation_position="top left"
+)
 
-    fig_volumen_riesgo.update_traces(
-        textposition="top center",
-        marker=dict(opacity=0.8, line=dict(width=1, color="white"))
+fig_volumen_riesgo.update_traces(
+    textposition="top center",
+    marker=dict(
+        opacity=0.8,
+        line=dict(width=1, color="white")
     )
+)
 
-    fig_volumen_riesgo.update_layout(
-        height=520,
-        xaxis_title="Cantidad de pedidos",
-        yaxis_title="Tasa de fallas extremas (%)"
-    )
+fig_volumen_riesgo.update_layout(
+    height=520,
+    xaxis_title="Cantidad de pedidos",
+    yaxis_title="Tasa de fallas extremas (%)"
+)
 
     st.plotly_chart(fig_volumen_riesgo, use_container_width=True)
 

@@ -48,6 +48,7 @@ impacto_sp_rj = cargar_csv("impacto_sp_rj_misma_region.csv")
 paciencia_diaria = cargar_csv("paciencia_segmento_diaria.csv")
 umbrales_paciencia = cargar_csv("umbrales_paciencia_segmento.csv")
 geojson_brasil = cargar_geojson("brasil_estados.geojson")
+riesgo_region_comprador = cargar_csv("riesgo_operativo_region_comprador.csv")
 
 # ============================================================
 # PREPARACIÓN DE DATOS PARA MAPA
@@ -83,13 +84,14 @@ for feature in geojson_brasil["features"]:
 st.sidebar.title("🚚 Olist Logística")
 
 seccion = st.sidebar.radio(
-    "Navegación",
+    "Seleccioná una sección",
     [
         "Resumen ejecutivo",
         "Desempeño logístico general",
         "Segmentos logísticos",
         "Riesgo por estado",
         "Mapa de riesgo",
+        "Riesgo por región del comprador",
         "Rutas críticas",
         "Fallas extremas y satisfacción",
         "Modelo predictivo",
@@ -1802,3 +1804,212 @@ elif seccion == "Desempeño logístico general":
 
     Por eso, en el proyecto se analizan como eventos críticos y no se eliminan como simples outliers.
     """)
+    # ============================================================
+# SECCIÓN: RIESGO POR REGIÓN DEL COMPRADOR
+# ============================================================
+
+elif seccion == "Riesgo por región del comprador":
+
+    st.title("🌎 Riesgo operativo por región del comprador")
+
+    st.markdown(
+        """
+        En esta sección se analiza si el riesgo operativo cambia según la región donde se encuentra el comprador.
+        La hipótesis es que algunos destinos presentan mayor probabilidad de fallas extremas, incluso si no concentran
+        el mayor volumen absoluto de pedidos.
+        """
+    )
+
+    df_region = riesgo_region_comprador.copy()
+
+    # Orden lógico de regiones
+    orden_regiones = ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"]
+    df_region["region_comprador"] = pd.Categorical(
+        df_region["region_comprador"],
+        categories=orden_regiones,
+        ordered=True
+    )
+    df_region = df_region.sort_values("region_comprador")
+
+    # Tasa global recalculada desde la tabla
+    tasa_global = (
+        df_region["fallas_extremas"].sum() /
+        df_region["pedidos"].sum() * 100
+    )
+
+    # Filas clave
+    fila_norte = df_region[df_region["region_comprador"] == "Norte"].iloc[0]
+    fila_nordeste = df_region[df_region["region_comprador"] == "Nordeste"].iloc[0]
+    fila_sudeste = df_region[df_region["region_comprador"] == "Sudeste"].iloc[0]
+
+    st.subheader("Lectura principal")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric(
+            "Mayor riesgo relativo",
+            "Norte",
+            f"{fila_norte['indice_riesgo_operativo']:.2f}x promedio"
+        )
+
+    with col2:
+        st.metric(
+            "Tasa de fallas Norte",
+            f"{fila_norte['tasa_fallas_extremas']:.2f}%",
+            f"+{fila_norte['diferencia_vs_tasa_global_pp']:.2f} pp vs global"
+        )
+
+    with col3:
+        st.metric(
+            "Mayor volumen absoluto",
+            "Sudeste",
+            f"{int(fila_sudeste['fallas_extremas'])} fallas"
+        )
+
+    st.info(
+        "El Norte presenta el mayor riesgo relativo de fallas extremas, "
+        "mientras que el Sudeste concentra más fallas absolutas por su mayor volumen de pedidos."
+    )
+
+    # ------------------------------------------------------------
+    # Gráfico 1: tasa de fallas extremas por región
+    # ------------------------------------------------------------
+
+    colores_regiones = {
+        "Norte": "#003B73",
+        "Nordeste": "#005A9C",
+        "Centro-Oeste": "#247BA0",
+        "Sudeste": "#6BAED6",
+        "Sul": "#A6CEE3"
+    }
+
+    fig_tasa_region = px.bar(
+        df_region,
+        x="region_comprador",
+        y="tasa_fallas_extremas",
+        color="region_comprador",
+        color_discrete_map=colores_regiones,
+        text="tasa_fallas_extremas",
+        title="Tasa de fallas extremas por región del comprador",
+        labels={
+            "region_comprador": "Región del comprador",
+            "tasa_fallas_extremas": "Tasa de fallas extremas (%)"
+        }
+    )
+
+    fig_tasa_region.add_hline(
+        y=tasa_global,
+        line_dash="dash",
+        line_color="#1F2937",
+        annotation_text=f"Promedio global: {tasa_global:.2f}%",
+        annotation_position="top left"
+    )
+
+    fig_tasa_region.update_traces(
+        texttemplate="%{text:.2f}%",
+        textposition="outside"
+    )
+
+    fig_tasa_region.update_layout(
+        showlegend=False,
+        height=520,
+        yaxis_title="Tasa de fallas extremas (%)",
+        xaxis_title="Región del comprador"
+    )
+
+    st.plotly_chart(fig_tasa_region, use_container_width=True)
+
+    st.markdown(
+        """
+        **Interpretación:**  
+        La región Norte tiene una tasa de fallas extremas de **5,23%**, muy por encima del promedio global.
+        Su índice de riesgo operativo es **3,83**, lo que significa que el riesgo relativo es casi cuatro veces
+        superior al promedio de la operación.
+        """
+    )
+
+    # ------------------------------------------------------------
+    # Gráfico 2: volumen vs riesgo relativo
+    # ------------------------------------------------------------
+
+    fig_volumen_riesgo = px.scatter(
+        df_region,
+        x="pedidos",
+        y="tasa_fallas_extremas",
+        size="fallas_extremas",
+        color="region_comprador",
+        color_discrete_map=colores_regiones,
+        text="region_comprador",
+        title="Volumen de pedidos vs riesgo relativo",
+        labels={
+            "pedidos": "Cantidad de pedidos",
+            "tasa_fallas_extremas": "Tasa de fallas extremas (%)",
+            "fallas_extremas": "Fallas extremas",
+            "region_comprador": "Región"
+        }
+    )
+
+    fig_volumen_riesgo.update_traces(
+        textposition="top center",
+        marker=dict(opacity=0.8, line=dict(width=1, color="white"))
+    )
+
+    fig_volumen_riesgo.update_layout(
+        height=520,
+        xaxis_title="Cantidad de pedidos",
+        yaxis_title="Tasa de fallas extremas (%)"
+    )
+
+    st.plotly_chart(fig_volumen_riesgo, use_container_width=True)
+
+    st.markdown(
+        """
+        **Lectura operativa:**  
+        Este gráfico separa dos conceptos importantes: **riesgo relativo** e **impacto absoluto**.
+        El Norte es crítico por tasa de fallas, mientras que el Sudeste requiere seguimiento por volumen,
+        ya que concentra una gran cantidad de pedidos y fallas absolutas.
+        """
+    )
+
+    # ------------------------------------------------------------
+    # Tabla comparativa destacada
+    # ------------------------------------------------------------
+
+    st.subheader("Comparación de regiones clave")
+
+    tabla_region = df_region[
+        [
+            "region_comprador",
+            "pedidos",
+            "fallas_extremas",
+            "tasa_fallas_extremas",
+            "indice_riesgo_operativo",
+            "tasa_retraso_oficial",
+            "review_promedio",
+            "porcentaje_reviews_bajas"
+        ]
+    ].copy()
+
+    tabla_region = tabla_region.rename(columns={
+        "region_comprador": "Región",
+        "pedidos": "Pedidos",
+        "fallas_extremas": "Fallas extremas",
+        "tasa_fallas_extremas": "Tasa fallas extremas (%)",
+        "indice_riesgo_operativo": "Índice riesgo",
+        "tasa_retraso_oficial": "Tasa retraso oficial (%)",
+        "review_promedio": "Review promedio",
+        "porcentaje_reviews_bajas": "Reviews bajas (%)"
+    })
+
+    st.dataframe(
+        tabla_region.round(2),
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.success(
+        "Conclusión: la región Norte presenta el mayor riesgo relativo, "
+        "el Nordeste combina riesgo alto con peor satisfacción promedio, "
+        "y el Sudeste concentra mayor volumen absoluto de fallas."
+    )

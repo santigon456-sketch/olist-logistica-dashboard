@@ -1967,29 +1967,30 @@ elif seccion == "Riesgo por región del comprador":
             "region_comprador": "Región"
         }
     )
-fig_volumen_riesgo.add_hline(
-    y=tasa_global,
-    line_dash="dash",
-    line_color="#1F2937",
-    annotation_text=f"Promedio global: {tasa_global:.2f}%",
-    annotation_position="top left"
-)
 
-fig_volumen_riesgo.update_traces(
-    textposition="top center",
-    marker=dict(
-        opacity=0.8,
-        line=dict(width=1, color="white")
+    fig_volumen_riesgo.add_hline(
+        y=tasa_global,
+        line_dash="dash",
+        line_color="#1F2937",
+        annotation_text=f"Promedio global: {tasa_global:.2f}%",
+        annotation_position="top left"
     )
-)
 
-fig_volumen_riesgo.update_layout(
-    height=520,
-    xaxis_title="Cantidad de pedidos",
-    yaxis_title="Tasa de fallas extremas (%)"
-)
+    fig_volumen_riesgo.update_traces(
+        textposition="top center",
+        marker=dict(
+            opacity=0.8,
+            line=dict(width=1, color="white")
+        )
+    )
 
-st.plotly_chart(fig_volumen_riesgo, use_container_width=True)
+    fig_volumen_riesgo.update_layout(
+        height=520,
+        xaxis_title="Cantidad de pedidos",
+        yaxis_title="Tasa de fallas extremas (%)"
+    )
+
+    st.plotly_chart(fig_volumen_riesgo, use_container_width=True)
 
     st.markdown(
         """
@@ -2000,6 +2001,24 @@ st.plotly_chart(fig_volumen_riesgo, use_container_width=True)
         """
     )
 
+    # ------------------------------------------------------------
+    # Tabla comparativa destacada
+    # ------------------------------------------------------------
+
+    st.subheader("Comparación de regiones clave")
+
+    tabla_region = df_region[
+        [
+            "region_comprador",
+            "pedidos",
+            "fallas_extremas",
+            "tasa_fallas_extremas",
+            "indice_riesgo_operativo",
+            "tasa_retraso_oficial",
+            "review_promedio",
+            "porcentaje_reviews_bajas"
+        ]
+    ].copy()
     # ------------------------------------------------------------
     # Tabla comparativa destacada
     # ------------------------------------------------------------

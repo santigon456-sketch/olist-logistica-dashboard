@@ -65,7 +65,7 @@ regiones_brasil_uf = {
     "RO": "Norte", "AC": "Norte", "AM": "Norte", "RR": "Norte", "PA": "Norte", "AP": "Norte", "TO": "Norte",
     "MA": "Nordeste", "PI": "Nordeste", "CE": "Nordeste", "RN": "Nordeste", "PB": "Nordeste", "PE": "Nordeste", "AL": "Nordeste", "SE": "Nordeste", "BA": "Nordeste",
     "MG": "Sudeste", "ES": "Sudeste", "RJ": "Sudeste", "SP": "Sudeste",
-    "PR": "Sur", "SC": "Sur", "RS": "Sur",
+    "PR": "Sul", "SC": "Sul", "RS": "Sul",
     "MS": "Centro-Oeste", "MT": "Centro-Oeste", "GO": "Centro-Oeste", "DF": "Centro-Oeste"
 }
 estados["codarea"] = estados["customer_state"].map(codigos_ibge_uf)
@@ -222,7 +222,7 @@ elif seccion == "Segmentos logísticos":
     st.subheader("Mapa de macro-regiones de Brasil")
 
     st.markdown("""
-    Este mapa divide Brasil en sus cinco macro-regiones: **Norte, Nordeste, Centro-Oeste, Sudeste y Sur**.
+    Este mapa divide Brasil en sus cinco macro-regiones: **Norte, Nordeste, Centro-Oeste, Sudeste y Sul**.
 
     La división regional ayuda a interpretar los segmentos logísticos del proyecto.  
     Un pedido clasificado como **Misma Región** no necesariamente implica cercanía operativa baja:

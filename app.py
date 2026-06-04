@@ -1950,56 +1950,54 @@ elif seccion == "Riesgo por región del comprador":
     # ------------------------------------------------------------
     # Gráfico 2: volumen vs riesgo relativo
     # ------------------------------------------------------------
+fig_volumen_riesgo = px.scatter(
+    df_region,
+    x="pedidos",
+    y="tasa_fallas_extremas",
+    size="fallas_extremas",
+    color="region_comprador",
+    color_discrete_map=colores_regiones,
+    text="region_comprador",
+    title="Volumen de pedidos vs riesgo relativo",
+    labels={
+        "pedidos": "Cantidad de pedidos",
+        "tasa_fallas_extremas": "Tasa de fallas extremas (%)",
+        "fallas_extremas": "Fallas extremas",
+        "region_comprador": "Región"
+    }
+)
 
-    fig_volumen_riesgo = px.scatter(
-        df_region,
-        x="pedidos",
-        y="tasa_fallas_extremas",
-        size="fallas_extremas",
-        color="region_comprador",
-        color_discrete_map=colores_regiones,
-        text="region_comprador",
-        title="Volumen de pedidos vs riesgo relativo",
-        labels={
-            "pedidos": "Cantidad de pedidos",
-            "tasa_fallas_extremas": "Tasa de fallas extremas (%)",
-            "fallas_extremas": "Fallas extremas",
-            "region_comprador": "Región"
-        }
+fig_volumen_riesgo.add_hline(
+    y=tasa_global,
+    line_dash="dash",
+    line_color="#1F2937"
+)
+
+fig_volumen_riesgo.update_traces(
+    textposition="top center",
+    marker=dict(
+        opacity=0.8,
+        line=dict(width=1, color="white")
     )
+)
 
-    fig_volumen_riesgo.add_hline(
-        y=tasa_global,
-        line_dash="dash",
-        line_color="#1F2937",
-        annotation_text=f"Promedio global: {tasa_global:.2f}%",
-        annotation_position="top left"
-    )
+fig_volumen_riesgo.update_layout(
+    height=520,
+    xaxis_title="Cantidad de pedidos",
+    yaxis_title="Tasa de fallas extremas (%)"
+)
 
-    fig_volumen_riesgo.update_traces(
-        textposition="top center",
-        marker=dict(
-            opacity=0.8,
-            line=dict(width=1, color="white")
-        )
-    )
+st.plotly_chart(fig_volumen_riesgo, use_container_width=True)
 
-    fig_volumen_riesgo.update_layout(
-        height=520,
-        xaxis_title="Cantidad de pedidos",
-        yaxis_title="Tasa de fallas extremas (%)"
-    )
-
-    st.plotly_chart(fig_volumen_riesgo, use_container_width=True)
-
-    st.markdown(
-        """
-        **Lectura operativa:**  
-        Este gráfico separa dos conceptos importantes: **riesgo relativo** e **impacto absoluto**.
-        El Norte es crítico por tasa de fallas, mientras que el Sudeste requiere seguimiento por volumen,
-        ya que concentra una gran cantidad de pedidos y fallas absolutas.
-        """
-    )
+st.markdown(
+    f"""
+    **Lectura operativa:**  
+    Este gráfico separa dos conceptos importantes: **riesgo relativo** e **impacto absoluto**.  
+    La línea punteada representa la **tasa global de fallas extremas ({tasa_global:.2f}%)**.  
+    El Norte es crítico por tasa de fallas, mientras que el Sudeste requiere seguimiento por volumen,
+    ya que concentra una gran cantidad de pedidos y fallas absolutas.
+    """
+)
 
     # ------------------------------------------------------------
     # Tabla comparativa destacada

@@ -1989,7 +1989,7 @@ fig_volumen_riesgo.update_layout(
     yaxis_title="Tasa de fallas extremas (%)"
 )
 
-    st.plotly_chart(fig_volumen_riesgo, use_container_width=True)
+st.plotly_chart(fig_volumen_riesgo, use_container_width=True)
 
     st.markdown(
         """

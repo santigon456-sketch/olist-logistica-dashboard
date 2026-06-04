@@ -2003,7 +2003,7 @@ st.markdown(
     # Tabla comparativa destacada
     # ------------------------------------------------------------
 
-    st.subheader("Comparación de regiones clave")
+st.subheader("Comparación de regiones clave")
 
     tabla_region = df_region[
         [
